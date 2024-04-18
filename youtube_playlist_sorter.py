@@ -36,7 +36,7 @@ def make_categories(youtube):
 
     prompt += 'Given the set of video titles, come up with playlist titles that all of the videos can be categorized into. Try to be broad with the categories such as \"Game Development\" or \"Art\" while limiting too much overlap between them. The video titles are as follows: '
 
-    videos = get_playlist_videos(youtube,PLAYLIST_ID)
+    videos = get_all_playlist_videos(youtube,PLAYLIST_ID)
     prompt += videos
 
     return get_openai_response(prompt)
@@ -82,7 +82,7 @@ def print_playlist_videos(youtube, playlist_id):
 
 
 def get_playlist_videos(youtube, playlist_id):
-    max_results=100
+    max_results=50
     
     request = youtube.playlistItems().list(
         part="snippet",
@@ -95,6 +95,31 @@ def get_playlist_videos(youtube, playlist_id):
     items = response.get('items', [])
     for item in items:
         videos += ('\"' + item['snippet']['title'] + '\"; ')
+
+    return videos
+
+
+def get_all_playlist_videos(youtube, playlist_id):
+    videos = ''
+
+    max_results=50
+    page_token = None
+
+    while True:
+        request = youtube.playlistItems().list(
+            part="snippet",
+            playlistId=playlist_id,
+            maxResults=max_results,
+            pageToken=page_token
+        )
+        response = request.execute()
+
+        for item in response.get('items', []):
+            videos += ('\"' + item['snippet']['title'] + '\"; ')
+
+        page_token = response.get('nextPageToken')
+        if not page_token:
+            break
 
     return videos
 
