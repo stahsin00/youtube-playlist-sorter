@@ -140,6 +140,42 @@ def categorize_playlist_videos(youtube, playlist_id):
         user_input = user_input.upper()
         if (user_input == 'N'):
             return
+        
+
+def count_categorized_playlist_videos(youtube, playlist_id):
+    categories_dict = {}
+    categories_string = get_categories()
+
+    max_results=50
+    page_token = None
+
+    while True:
+        try:
+            request = youtube.playlistItems().list(
+                part="snippet",
+                playlistId=playlist_id,
+                maxResults=max_results,
+                pageToken=page_token
+            )
+            response = request.execute()
+
+            items = response.get('items', [])
+            for item in items:
+                response_cat = place_in_category(item['snippet'], categories_string)
+                if response_cat in categories_dict:
+                    categories_dict[response_cat] += 1
+                else:
+                    categories_dict[response_cat] = 1
+
+            page_token = response.get('nextPageToken')
+            if not page_token:
+                break
+        except Exception as e:
+            print(f"Error: {e}")
+            break
+
+    for key, value in categories_dict.items():
+        print(f"\"{key}\" : {value}")
 
 
 def get_playlist_videos(youtube, playlist_id):
@@ -215,6 +251,6 @@ def main():
     #response = make_categories(youtube)
     #print(response)
     #print(get_categories())
-    categorize_playlist_videos(youtube,PLAYLIST_ID)
+    count_categorized_playlist_videos(youtube,PLAYLIST_ID)
 
 main()
