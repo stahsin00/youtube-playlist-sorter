@@ -58,8 +58,9 @@ def make_categories(youtube):
 
     prompt += 'Given the set of video titles, come up with playlist titles that all of the videos can be categorized into. Try to be broad with the categories such as \"Game Development\" or \"Art\" while limiting too much overlap between them. The video titles are as follows: '
 
-    videos = get_all_playlist_videos(youtube,PLAYLIST_ID)
-    prompt += videos
+    # TODO
+    #videos = get_all_playlist_videos(youtube,PLAYLIST_ID)
+    #prompt += videos
 
     return get_openai_response(prompt)
 
@@ -81,66 +82,6 @@ def place_in_category(snippet, categories_string):
 
     return get_openai_response(prompt)
 
-
-def get_authenticated_service():
-    flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
-    credentials = flow.run_local_server(port=8080, prompt='consent')
-
-    return build('youtube', 'v3', credentials=credentials)
-
-
-def add_video_to_playlist(youtube, playlist_id, video_id):
-    request_body = {
-        'snippet': {
-            'playlistId': playlist_id,
-            'resourceId': {
-                'kind': 'youtube#video',
-                'videoId': video_id
-            }
-        }
-    }
-
-    try:
-        youtube.playlistItems().insert(part="snippet", body=request_body).execute()
-    except Exception as e:
-        print(f"Error: {e}")
-
-
-def print_playlist_videos(youtube, playlist_id):
-    max_results=5
-    
-    request = youtube.playlistItems().list(
-        part="snippet",
-        playlistId=playlist_id,
-        maxResults=max_results
-    )
-    response = request.execute()
-
-    items = response.get('items', [])
-    for item in items:
-        print(item['snippet']['title'])
-
-def categorize_playlist_videos(youtube, playlist_id):
-    max_results=5
-    
-    request = youtube.playlistItems().list(
-        part="snippet",
-        playlistId=playlist_id,
-        maxResults=max_results
-    )
-    response = request.execute()
-
-    categories_string = get_categories()
-
-    items = response.get('items', [])
-    for item in items:
-        response = place_in_category(item['snippet'], categories_string)
-        print(f"\"{item['snippet']['title']}\": {response}")
-        user_input = input("Press Y to continue or N to exit: ")
-        user_input = user_input.upper()
-        if (user_input == 'N'):
-            return
-        
 
 def count_categorized_playlist_videos(youtube, playlist_id):
     categories_dict = {}
@@ -178,79 +119,64 @@ def count_categorized_playlist_videos(youtube, playlist_id):
         print(f"\"{key}\" : {value}")
 
 
-def get_playlist_videos(youtube, playlist_id):
-    max_results=50
-    
-    request = youtube.playlistItems().list(
-        part="snippet",
-        playlistId=playlist_id,
-        maxResults=max_results
-    )
-    response = request.execute()
+def get_authenticated_service():
+    flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
+    credentials = flow.run_local_server(port=8080, prompt='consent')
 
-    videos = ''
-    items = response.get('items', [])
-    for item in items:
-        videos += ('\"' + item['snippet']['title'] + '\"; ')
-
-    return videos
+    return build('youtube', 'v3', credentials=credentials)
 
 
-def get_all_playlist_videos(youtube, playlist_id):
-    videos = ''
+def get_playlist_videos(youtube, playlist_id, max_allowed = 500):
+    videos = []
 
     max_results=50
     page_token = None
 
-    while True:
-        request = youtube.playlistItems().list(
-            part="snippet",
-            playlistId=playlist_id,
-            maxResults=max_results,
-            pageToken=page_token
-        )
-        response = request.execute()
+    try: 
+        while max_allowed > 0:
+            current_batch_size = min(max_results, max_allowed)
+            max_allowed -= current_batch_size
 
-        for item in response.get('items', []):
-            videos += ('\"' + item['snippet']['title'] + '\"; ')
+            request = youtube.playlistItems().list(
+                part="snippet",
+                playlistId=playlist_id,
+                maxResults=current_batch_size,
+                pageToken=page_token
+            )
+            response = request.execute()
 
-        page_token = response.get('nextPageToken')
-        if not page_token:
-            break
+            items = response.get('items', [])
+            videos.extend(item['snippet'] for item in items)
+
+            page_token = response.get('nextPageToken')
+            if not page_token:
+                break
+    except Exception as e:
+        print(f"Error: {e}")
 
     return videos
 
 
-def get_and_add_video(youtube, playlist_id):
-    max_results=5
-    
+def add_video_to_playlist(youtube, playlist_id, video_id):
+    request_body = {
+        'snippet': {
+            'playlistId': playlist_id,
+            'resourceId': {
+                'kind': 'youtube#video',
+                'videoId': video_id
+            }
+        }
+    }
+
     try:
-        request = youtube.playlistItems().list(
-            part="snippet",
-            playlistId=playlist_id,
-            maxResults=max_results
-        )
-        response = request.execute()
-
-        items = response.get('items', [])
-        for item in items:
-            video_id = item['snippet']['resourceId']['videoId']
-            print(item['snippet']['title'])
-            add_video_to_playlist(youtube, TEST_PLAYLIST_ID, video_id)
-
+        youtube.playlistItems().insert(part="snippet", body=request_body).execute()
     except Exception as e:
         print(f"Error: {e}")
 
 
 def main():
     youtube = get_authenticated_service()
-    #print_playlist_videos(youtube,PLAYLIST_ID)
-    #response = get_openai_response("hello! im just testing api calls")
-    #print(response)
-    #get_and_add_video(youtube, PLAYLIST_ID)
-    #response = make_categories(youtube)
-    #print(response)
-    #print(get_categories())
-    count_categorized_playlist_videos(youtube,PLAYLIST_ID)
+    videos = get_playlist_videos(youtube, PLAYLIST_ID, 1000)
+    print(len(videos))
 
 main()
