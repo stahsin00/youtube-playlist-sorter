@@ -87,33 +87,17 @@ def count_categorized_playlist_videos(youtube, playlist_id):
     categories_dict = {}
     categories_string = get_categories()
 
-    max_results=50
-    page_token = None
+    videos = get_playlist_videos(youtube, playlist_id)
 
-    while True:
-        try:
-            request = youtube.playlistItems().list(
-                part="snippet",
-                playlistId=playlist_id,
-                maxResults=max_results,
-                pageToken=page_token
-            )
-            response = request.execute()
-
-            items = response.get('items', [])
-            for item in items:
-                response_cat = place_in_category(item['snippet'], categories_string)
-                if response_cat in categories_dict:
-                    categories_dict[response_cat] += 1
-                else:
-                    categories_dict[response_cat] = 1
-
-            page_token = response.get('nextPageToken')
-            if not page_token:
-                break
-        except Exception as e:
-            print(f"Error: {e}")
-            break
+    try:
+        for video in videos:
+            response_cat = place_in_category(video, categories_string)
+            if response_cat in categories_dict:
+                categories_dict[response_cat] += 1
+            else:
+                categories_dict[response_cat] = 1
+    except Exception as e:
+        print(f"Error: {e}")
 
     for key, value in categories_dict.items():
         print(f"\"{key}\" : {value}")
