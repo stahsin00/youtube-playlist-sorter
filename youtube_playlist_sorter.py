@@ -2,9 +2,8 @@ import os
 
 from dotenv import load_dotenv
 
-import openai
-
-from youtube_api import get_authenticated_service, get_playlists, get_playlist_videos
+from youtube_api import get_authenticated_service, get_playlists, create_playlist, get_playlist_videos
+from openai_api import get_openai_response
 
 
 load_dotenv()
@@ -37,19 +36,6 @@ categories = [
     "Human Mind and Behavior",
     "Other"
     ]
-
-
-def get_openai_response(prompt):
-    openai.api_key = OPENAI_API_KEY
-
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
-    )
-
-    return response.choices[0].message['content']
 
 
 def make_categories(youtube):
@@ -109,5 +95,8 @@ def main():
     playlists = get_playlists(youtube)
     for playlist in playlists:
         print(playlist['snippet']['title'])
+
+    #id = create_playlist(youtube=youtube,title='test2')
+    #print(id)
 
 main()
