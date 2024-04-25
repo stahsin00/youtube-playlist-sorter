@@ -130,7 +130,7 @@ def get_playlists(youtube, max_allowed = 500):
             response = request.execute()
 
             items = response.get('items', [])
-            playlists.extend(item['snippet'] for item in items)
+            playlists.extend({'id':item['id'],'snippet':item['snippet']} for item in items)
 
             page_token = response.get('nextPageToken')
             if not page_token:
@@ -213,6 +213,6 @@ def main():
     #print(len(videos))
     playlists = get_playlists(youtube)
     for playlist in playlists:
-        print(playlist['title'])
+        print(playlist['snippet']['title'])
 
 main()
