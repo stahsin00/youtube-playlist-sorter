@@ -103,6 +103,37 @@ def count_categorized_playlist_videos(youtube, playlist_id):
         print(f"\"{key}\" : {value}")
 
 
+def get_playlists(youtube, max_allowed = 500):
+    playlists = []
+
+    max_results=50
+    page_token = None
+
+    try: 
+        while max_allowed > 0:
+            current_batch_size = min(max_results, max_allowed)
+            max_allowed -= current_batch_size
+
+            request = youtube.playlists().list(
+                part="snippet",
+                mine=True,
+                maxResults=current_batch_size,
+                pageToken=page_token
+            )
+            response = request.execute()
+
+            items = response.get('items', [])
+            playlists.extend(item['snippet'] for item in items)
+
+            page_token = response.get('nextPageToken')
+            if not page_token:
+                break
+    except Exception as e:
+        print(f"Error: {e}")
+
+    return playlists
+
+
 def get_authenticated_service():
     flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
     credentials = flow.run_local_server(port=8080, prompt='consent')
@@ -160,7 +191,10 @@ def add_video_to_playlist(youtube, playlist_id, video_id):
 
 def main():
     youtube = get_authenticated_service()
-    videos = get_playlist_videos(youtube, PLAYLIST_ID, 1000)
-    print(len(videos))
+    #videos = get_playlist_videos(youtube, PLAYLIST_ID, 1000)
+    #print(len(videos))
+    playlists = get_playlists(youtube)
+    for playlist in playlists:
+        print(playlist['title'])
 
 main()
