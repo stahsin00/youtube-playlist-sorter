@@ -91,7 +91,7 @@ def count_categorized_playlist_videos(youtube, playlist_id):
 
     try:
         for video in videos:
-            response_cat = place_in_category(video, categories_string)
+            response_cat = place_in_category(video['snippet'], categories_string)
             if response_cat in categories_dict:
                 categories_dict[response_cat] += 1
             else:
@@ -179,7 +179,7 @@ def get_playlist_videos(youtube, playlist_id, max_allowed = 500):
             response = request.execute()
 
             items = response.get('items', [])
-            videos.extend(item['snippet'] for item in items)
+            videos.extend({'id':item['id'],'snippet':item['snippet']} for item in items)
 
             page_token = response.get('nextPageToken')
             if not page_token:
@@ -203,6 +203,13 @@ def add_video_to_playlist(youtube, playlist_id, video_id):
 
     try:
         youtube.playlistItems().insert(part="snippet", body=request_body).execute()
+    except Exception as e:
+        print(f"Error: {e}")
+
+
+def remove_video_from_playlist(youtube, playlistitem_id):
+    try:
+        youtube.playlistItems().delete(id=playlistitem_id).execute()
     except Exception as e:
         print(f"Error: {e}")
 
