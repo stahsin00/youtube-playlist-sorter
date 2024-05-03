@@ -2,14 +2,16 @@ import os
 import random
 
 from dotenv import load_dotenv
+from tqdm import tqdm
 
-from youtube_api import get_authenticated_service, get_playlists, create_playlist, get_playlist_videos, move_video
+from youtube_api import get_authenticated_service, get_playlists, create_playlist, get_playlist_videos, move_video, add_video_to_playlist
 from openai_api import place_in_category
 
 load_dotenv()
 
 CLIENT_SECRETS_FILE = os.getenv('CLIENT_SECRETS_PATH')
 SCOPES = [os.getenv('YOUTUBE_API_SCOPES')]
+
 PLAYLIST_ID = os.getenv('PLAYLIST_ID')
 TEST_PLAYLIST_ID = os.getenv('TEST_PLAYLIST_ID')
 SAMPLE_PLAYLIST_ID = os.getenv('SAMPLE_PLAYLIST_ID')
@@ -39,15 +41,24 @@ categories = [
     ]
 
 
-def sample_videos(videos, sample_size):
+def sample_videos(videos, sample_size = 50):
     return random.sample(videos, min(sample_size, len(videos)))
+
+
+def create_sample(youtube, videos):
+    sample = sample_videos(videos)
+
+    for video in sample:
+        add_video_to_playlist(youtube, SAMPLE_PLAYLIST_ID, video['snippet']['resourceId']['videoId'])
+
+    return sample
 
 
 def categorize(youtube, videos, playlists):
     categories_string = ', '.join(f'"{category}"' for category in categories)
 
     try:
-        for video in videos:
+        for video in tqdm(videos, desc="Processing videos"):
             response_cat = place_in_category(video['snippet'], categories_string, OPENAI_API_KEY)
 
             if response_cat not in categories:
@@ -58,6 +69,8 @@ def categorize(youtube, videos, playlists):
                 playlists[response_cat] = id
 
             move_video(youtube, video['snippet']['resourceId']['videoId'], video['id'], playlists[response_cat])
+
+        print("Processing complete.")
     except Exception as e:
         print(f"Error: {e}")
 
@@ -66,13 +79,15 @@ def main():
     youtube = get_authenticated_service(CLIENT_SECRETS_FILE, SCOPES)
 
     videos = get_playlist_videos(youtube, SAMPLE_PLAYLIST_ID, 1000)
+
+    # TODO: sample = create_sample(youtube, videos)
+
+    # TODO : Generate category from video info
+
     playlists = get_playlists(youtube, categories)
 
     categorize(youtube, videos, playlists)
 
-    #this_sample = sample_videos(videos, 50)
 
-    #for video in this_sample:
-    #    add_video_to_playlist(youtube, SAMPLE_PLAYLIST_ID, video['snippet']['resourceId']['videoId'])
-
-main()
+if __name__ == "__main__":
+    main()
