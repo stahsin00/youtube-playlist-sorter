@@ -23,7 +23,7 @@ def make_categories(titles):
         prompt = ("Given the set of video titles, come up with playlist titles that all of "
                   "the videos can be categorized into. Try to be broad with the categories such "
                   "as \"Game Development\" or \"Art\" while limiting too much overlap between them. "
-                  f"The video titles are as follows: {"; ".join(titles)}.")
+                  f"The video titles are as follows: {'; '.join(titles)}.")
 
         return get_openai_response(prompt)
     except Exception as e:

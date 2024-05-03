@@ -1,9 +1,10 @@
 import os
+import random
 
 from dotenv import load_dotenv
 
-from youtube_api import get_authenticated_service, get_playlists, create_playlist, get_playlist_videos
-from openai_api import get_openai_response, place_in_category
+from youtube_api import get_authenticated_service, get_playlists, create_playlist, get_playlist_videos, add_video_to_playlist
+from openai_api import place_in_category
 
 load_dotenv()
 
@@ -11,6 +12,7 @@ CLIENT_SECRETS_FILE = os.getenv('CLIENT_SECRETS_PATH')
 SCOPES = [os.getenv('YOUTUBE_API_SCOPES')]
 PLAYLIST_ID = os.getenv('PLAYLIST_ID')
 TEST_PLAYLIST_ID = os.getenv('TEST_PLAYLIST_ID')
+SAMPLE_PLAYLIST_ID = os.getenv('SAMPLE_PLAYLIST_ID')
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
@@ -42,6 +44,10 @@ def get_categories():
     return categories_string
 
 
+def sample_videos(videos, sample_size):
+    return random.sample(videos, min(sample_size, len(videos)))
+
+
 def count_categorized_playlist_videos(youtube, playlist_id):
     categories_dict = {}
     categories_string = get_categories()
@@ -65,11 +71,18 @@ def count_categorized_playlist_videos(youtube, playlist_id):
 def main():
     youtube = get_authenticated_service(CLIENT_SECRETS_FILE, SCOPES)
 
-    #videos = get_playlist_videos(youtube, PLAYLIST_ID, 1000)
+    videos = get_playlist_videos(youtube, SAMPLE_PLAYLIST_ID, 1000)
+
+    #this_sample = sample_videos(videos, 50)
+
+    #for video in this_sample:
+    #    add_video_to_playlist(youtube, SAMPLE_PLAYLIST_ID, video['snippet']['resourceId']['videoId'])
+
+
     #print(len(videos))
-    playlists = get_playlists(youtube)
-    for playlist in playlists:
-        print(playlist['snippet']['title'])
+    #playlists = get_playlists(youtube)
+    #for playlist in playlists:
+    #    print(playlist['snippet']['title'])
 
     #id = create_playlist(youtube=youtube,title='test2')
     #print(id)
