@@ -49,8 +49,8 @@ def sample_videos(videos, sample_size):
 
 
 def count_categorized_playlist_videos(videos):
-    categories_dict = {}
     categories_string = get_categories()
+    categories_dict = {}
 
     try:
         for video in videos:
@@ -70,8 +70,10 @@ def main():
     youtube = get_authenticated_service(CLIENT_SECRETS_FILE, SCOPES)
 
     videos = get_playlist_videos(youtube, SAMPLE_PLAYLIST_ID, 1000)
+    playlists = get_playlists(youtube, categories)
 
-    count_categorized_playlist_videos(videos)
+
+    #count_categorized_playlist_videos(videos)
 
     #this_sample = sample_videos(videos, 50)
 

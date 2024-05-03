@@ -9,8 +9,8 @@ def get_authenticated_service(client_secret_file, scopes):
     return build('youtube', 'v3', credentials=credentials)
 
 
-def get_playlists(youtube, max_allowed = 500):
-    playlists = []
+def get_playlists(youtube, categories, max_allowed = 500):
+    playlists = {}
 
     max_results=50
     page_token = None
@@ -29,7 +29,11 @@ def get_playlists(youtube, max_allowed = 500):
             response = request.execute()
 
             items = response.get('items', [])
-            playlists.extend({'id':item['id'],'snippet':item['snippet']} for item in items)
+
+            for item in items:
+                title = item['snippet']['title']
+                if title in categories:
+                    playlists[title] = item['id']
 
             page_token = response.get('nextPageToken')
             if not page_token:
