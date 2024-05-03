@@ -1,6 +1,7 @@
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
+
 def get_authenticated_service(client_secret_file, scopes):
     flow = InstalledAppFlow.from_client_secrets_file(client_secret_file, scopes)
     credentials = flow.run_local_server(port=8080, prompt='consent')

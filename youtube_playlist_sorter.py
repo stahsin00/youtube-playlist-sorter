@@ -3,8 +3,7 @@ import os
 from dotenv import load_dotenv
 
 from youtube_api import get_authenticated_service, get_playlists, create_playlist, get_playlist_videos
-from openai_api import get_openai_response
-
+from openai_api import get_openai_response, place_in_category
 
 load_dotenv()
 
@@ -38,34 +37,9 @@ categories = [
     ]
 
 
-def make_categories(youtube):
-    prompt = ''
-
-    prompt += 'Given the set of video titles, come up with playlist titles that all of the videos can be categorized into. Try to be broad with the categories such as \"Game Development\" or \"Art\" while limiting too much overlap between them. The video titles are as follows: '
-
-    # TODO
-    #videos = get_all_playlist_videos(youtube,PLAYLIST_ID)
-    #prompt += videos
-
-    return get_openai_response(prompt)
-
-
 def get_categories():
-    categories_string = ''
-    for category in categories:
-        categories_string += (f'\"{category}\", ')
+    categories_string = ', '.join(f'"{category}"' for category in categories)
     return categories_string
-
-
-def place_in_category(snippet, categories_string):
-    prompt = (f"Given the following list of categories: \[{categories_string}\], in which category would you place a video with the following info: ")
-
-    video_info = (f"\[title: {snippet['title']}, description: {snippet['description']}\]")
-    prompt += video_info
-
-    prompt += ". Reply with only the category name and no other explanation."
-
-    return get_openai_response(prompt)
 
 
 def count_categorized_playlist_videos(youtube, playlist_id):
@@ -90,6 +64,7 @@ def count_categorized_playlist_videos(youtube, playlist_id):
 
 def main():
     youtube = get_authenticated_service(CLIENT_SECRETS_FILE, SCOPES)
+
     #videos = get_playlist_videos(youtube, PLAYLIST_ID, 1000)
     #print(len(videos))
     playlists = get_playlists(youtube)
