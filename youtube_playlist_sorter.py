@@ -44,10 +44,10 @@ def sample_videos(videos, sample_size = 50):
     return random.sample(videos, min(sample_size, len(videos)))
 
 
-def create_sample(youtube, videos):
-    sample = sample_videos(videos)
+def create_sample(youtube, videos, sample_size = 50):
+    sample = sample_videos(videos, sample_size)
 
-    for video in sample:
+    for video in tqdm(sample, desc="Collecting sample."):
         add_video_to_playlist(youtube, SAMPLE_PLAYLIST_ID, video['snippet']['resourceId']['videoId'])
 
     return sample
@@ -76,7 +76,7 @@ def categorize(youtube, videos, playlists):
 
 def main():
     max_allowed = 50
-    
+
     youtube = get_authenticated_service(CLIENT_SECRETS_FILE, SCOPES)
 
     use_sample = input("Would you like to work with a sample? (Y/N): ").strip().lower()
