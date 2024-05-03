@@ -113,9 +113,11 @@ def add_video_to_playlist(youtube, playlist_id, video_id):
     }
 
     try:
-        youtube.playlistItems().insert(part="snippet", body=request_body).execute()
+        response = youtube.playlistItems().insert(part="snippet", body=request_body).execute()
+        return response
     except Exception as e:
         print(f"Error: {e}")
+        return None
 
 
 def remove_video_from_playlist(youtube, playlistitem_id):

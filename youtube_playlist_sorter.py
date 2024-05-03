@@ -46,11 +46,15 @@ def sample_videos(videos, sample_size = 50):
 
 def create_sample(youtube, videos, sample_size = 50):
     sample = sample_videos(videos, sample_size)
+    updated_videos = []
 
     for video in tqdm(sample, desc="Collecting sample."):
-        add_video_to_playlist(youtube, SAMPLE_PLAYLIST_ID, video['snippet']['resourceId']['videoId'])
+        response = add_video_to_playlist(youtube, SAMPLE_PLAYLIST_ID, video['snippet']['resourceId']['videoId'])
+        
+        if response:
+            updated_videos.append({'id':response['id'],'snippet':response['snippet']})
 
-    return sample
+    return updated_videos
 
 
 def categorize(youtube, videos, playlists):
