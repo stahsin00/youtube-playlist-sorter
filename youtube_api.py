@@ -93,6 +93,14 @@ def get_playlist_videos(youtube, playlist_id, max_allowed = 500):
     return videos
 
 
+def move_video(youtube, video_id, playlistitem_id, destination_id):
+    try:
+        add_video_to_playlist(youtube, destination_id, video_id)
+        remove_video_from_playlist(youtube, playlistitem_id)
+    except Exception as e:
+        print(f"Error: {e}")
+
+
 def add_video_to_playlist(youtube, playlist_id, video_id):
     request_body = {
         'snippet': {
