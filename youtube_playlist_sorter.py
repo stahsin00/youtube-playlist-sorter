@@ -13,7 +13,6 @@ CLIENT_SECRETS_FILE = os.getenv('CLIENT_SECRETS_PATH')
 SCOPES = [os.getenv('YOUTUBE_API_SCOPES')]
 
 PLAYLIST_ID = os.getenv('PLAYLIST_ID')
-TEST_PLAYLIST_ID = os.getenv('TEST_PLAYLIST_ID')
 SAMPLE_PLAYLIST_ID = os.getenv('SAMPLE_PLAYLIST_ID')
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -76,11 +75,22 @@ def categorize(youtube, videos, playlists):
 
 
 def main():
+    max_allowed = 50
+    
     youtube = get_authenticated_service(CLIENT_SECRETS_FILE, SCOPES)
 
-    videos = get_playlist_videos(youtube, SAMPLE_PLAYLIST_ID, 1000)
+    use_sample = input("Would you like to work with a sample? (Y/N): ").strip().lower()
 
-    # TODO: sample = create_sample(youtube, videos)
+    while use_sample not in ["y","n"]:
+        print("Invalid input. Please enter 'Y' or 'N'.")
+        use_sample = input("Would you like to work with a sample? (Y/N): ").strip().lower()
+
+    if use_sample == "y":
+        videos = get_playlist_videos(youtube, PLAYLIST_ID)
+        videos = create_sample(youtube, videos)
+        print("Sample collected.")
+    else:
+        videos = get_playlist_videos(youtube, PLAYLIST_ID, max_allowed)
 
     # TODO : Generate category from video info
 
