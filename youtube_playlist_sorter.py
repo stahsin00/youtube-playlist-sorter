@@ -48,15 +48,13 @@ def sample_videos(videos, sample_size):
     return random.sample(videos, min(sample_size, len(videos)))
 
 
-def count_categorized_playlist_videos(youtube, playlist_id):
+def count_categorized_playlist_videos(videos):
     categories_dict = {}
     categories_string = get_categories()
 
-    videos = get_playlist_videos(youtube, playlist_id)
-
     try:
         for video in videos:
-            response_cat = place_in_category(video['snippet'], categories_string)
+            response_cat = place_in_category(video['snippet'], categories_string, OPENAI_API_KEY)
             if response_cat in categories_dict:
                 categories_dict[response_cat] += 1
             else:
@@ -72,6 +70,8 @@ def main():
     youtube = get_authenticated_service(CLIENT_SECRETS_FILE, SCOPES)
 
     videos = get_playlist_videos(youtube, SAMPLE_PLAYLIST_ID, 1000)
+
+    count_categorized_playlist_videos(videos)
 
     #this_sample = sample_videos(videos, 50)
 
