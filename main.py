@@ -186,19 +186,22 @@ def main():
     max_allowed = 50
     videos = []
 
+    # Authenticate and connect to YouTube
     youtube = get_authenticated_service(CLIENT_SECRETS_FILE, SCOPES)
 
+    # Category selection and validation process
     select_categories(youtube, videos)
     while len(categories) <= 0:
         print("Must include atleast 1 category.")
         select_categories(youtube, videos)
 
+    # Decision to work with a sample of videos or all videos
     use_sample = input("Would you like to work with a sample? (Y/N): ").strip().lower()
-
     while use_sample not in ["y","n"]:
         print("Invalid input. Please enter 'Y' or 'N'.")
         use_sample = input("Would you like to work with a sample? (Y/N): ").strip().lower()
 
+    # Fetch and process videos based on user decision
     if use_sample == "y":
         if len(videos) == 0:
             videos = get_playlist_videos(youtube, PLAYLIST_ID)
@@ -207,8 +210,8 @@ def main():
     else:
         videos = get_playlist_videos(youtube, PLAYLIST_ID, max_allowed)
 
+    # Fetch playlists and categorize videos
     playlists = get_playlists(youtube, categories)
-
     categorize(youtube, videos, playlists)
 
 
