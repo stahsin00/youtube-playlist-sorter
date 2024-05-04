@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from tqdm import tqdm
 
 from youtube_api import get_authenticated_service, get_playlists, create_playlist, get_playlist_videos, move_video, add_video_to_playlist
-from openai_api import place_in_category
+from openai_api import place_in_category, generate_categories
 
 load_dotenv()
 
@@ -78,10 +78,120 @@ def categorize(youtube, videos, playlists):
         print(f"Error: {e}")
 
 
+def make_categories_automatically(youtube, videos):
+    global categories
+
+    try:
+        print("Generating categories.")
+        videos = get_playlist_videos(youtube, PLAYLIST_ID)
+        sample = sample_videos(videos)
+        titles = [video['snippet']['title'] for video in sample]
+        categories = generate_categories(titles, OPENAI_API_KEY).split('\n')
+        print("Categories generated.")
+    except Exception as e:
+        print(f"Error: {e}")
+        print("Failed to generate categories. Using default.")
+
+
+def make_categories_manually():
+    global categories
+
+    categories = []
+
+    while True:
+        try:
+            number_of_categories = int(input("How many categories do you want to enter? "))
+            break
+        except ValueError:
+            print("Invalid input. Please enter a valid number.")
+    for i in range(number_of_categories):
+        category = input(f"Enter category {i + 1}: ")
+        categories.append(category)
+
+
+def make_categories(youtube, videos, choice):
+    if choice == "2":
+        make_categories_automatically(youtube, videos)
+    elif choice == "3":
+        make_categories_manually()
+
+
+def display_categories():
+    print("The categories are: ")
+    for i, category in enumerate(categories):
+        print(f"{i+1}. {category}")
+
+
+def edit_categories():
+    global categories
+
+    while True:
+        try:
+            display_categories()
+
+            print("Which category would you like to edit?")
+            category_index = int(input("Enter the number of the category: "))-1
+
+            if not 0 <= category_index < len(categories):
+                print("Invalid input.")
+                continue
+
+            print(f"Editing: \"{categories[category_index]}\"")
+            categories[category_index] = input("Enter the new category: ").strip()
+            break
+        except ValueError:
+            print("Invalid input. Please enter a valid number.")
+
+
+def finalize_categories():
+    while True:
+        display_categories()
+
+        print("Proceed?")
+        print("1: Proceed to next step")
+        print("2: Edit categories")
+        choice = input("Enter your choice (1 or 2): ").strip()
+
+        if choice not in ["1", "2"]:
+            print("Invalid input. Please enter '1' or '2'.")
+            continue
+
+        return choice
+
+
+def select_categories(youtube, videos):
+    while True:
+        print("Select how to handle categories:")
+        print("1: Use default categories")
+        print("2: Automatically generate categories")
+        print("3: Enter categories manually")
+        choice = input("Enter your choice (1, 2, or 3): ").strip()
+
+        if choice not in ["1", "2", "3"]:
+            print("Invalid input. Please enter '1', '2', or '3'.")
+            continue
+
+        break
+
+    make_categories(youtube, videos, choice)
+
+    choice = finalize_categories()
+    
+    while choice == "2":
+        edit_categories()
+        choice = finalize_categories()
+
+
 def main():
     max_allowed = 50
+    videos = []
 
     youtube = get_authenticated_service(CLIENT_SECRETS_FILE, SCOPES)
+
+    select_categories(youtube, videos)
+    while len(categories) <= 0:
+        print("Must include atleast 1 category.")
+        select_categories(youtube, videos)
 
     use_sample = input("Would you like to work with a sample? (Y/N): ").strip().lower()
 
@@ -90,13 +200,12 @@ def main():
         use_sample = input("Would you like to work with a sample? (Y/N): ").strip().lower()
 
     if use_sample == "y":
-        videos = get_playlist_videos(youtube, PLAYLIST_ID)
+        if len(videos) == 0:
+            videos = get_playlist_videos(youtube, PLAYLIST_ID)
         videos = create_sample(youtube, videos)
         print("Sample collected.")
     else:
         videos = get_playlist_videos(youtube, PLAYLIST_ID, max_allowed)
-
-    # TODO : Generate category from video info
 
     playlists = get_playlists(youtube, categories)
 

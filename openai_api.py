@@ -18,11 +18,12 @@ def get_openai_response(prompt, openai_api_key):
         return None
 
 
-def make_categories(titles, openai_api_key):
+def generate_categories(titles, openai_api_key):
     try:
         prompt = ("Given the set of video titles, come up with playlist titles that all of "
                   "the videos can be categorized into. Try to be broad with the categories such "
-                  "as \"Game Development\" or \"Art\" while limiting too much overlap between them. "
+                  "as \"Game Development\" or \"Art\" while limiting too much overlap between "
+                  "them. Return each category on individual lines with nothing else on the line. "
                   f"The video titles are as follows: {'; '.join(titles)}.")
 
         return get_openai_response(prompt, openai_api_key)
