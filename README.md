@@ -16,11 +16,11 @@
 - A Google account with access to the YouTube Data API
 
 ### Environmental Variables
-CLIENT_SECRETS_PATH='path/to/client_secrets.json'
-YOUTUBE_API_SCOPES='https://www.googleapis.com/auth/youtube'
-PLAYLIST_ID='your_default_playlist_id'
-SAMPLE_PLAYLIST_ID='your_sample_playlist_id'
-OPENAI_API_KEY='your_openai_api_key'
+CLIENT_SECRETS_PATH='path/to/client_secrets.json'  
+YOUTUBE_API_SCOPES='https://www.googleapis.com/auth/youtube'  
+PLAYLIST_ID='your_default_playlist_id'  
+SAMPLE_PLAYLIST_ID='your_sample_playlist_id'  
+OPENAI_API_KEY='your_openai_api_key'  
 
 ### API
 - Enable YouTube Data API and obtain the necessary files from Google Developers Console
